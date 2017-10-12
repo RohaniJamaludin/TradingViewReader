@@ -1,0 +1,12 @@
+com\jobpoint\model\Product.class
+com\jobpoint\database\CRUDTrading.class
+com\jobpoint\database\CRUDProduct.class
+com\jobpoint\controller\TradingController.class
+com\jobpoint\controller\ProductController.class
+com\jobpoint\database\CreateDatabase.class
+com\jobpoint\app\App$1.class
+com\jobpoint\gui\MainWindow.class
+com\jobpoint\app\App.class
+com\jobpoint\gui\ProductTableModel.class
+com\jobpoint\model\Trading.class
+com\jobpoint\database\ConfigDatabase.class
