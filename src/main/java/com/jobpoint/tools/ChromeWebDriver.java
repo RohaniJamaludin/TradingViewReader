@@ -52,7 +52,7 @@ public class ChromeWebDriver {
 		driver.get(product.getChartUrl());
 		
 		try {
-    		Thread.sleep(1000 * 10 );
+    		Thread.sleep(1000 * 20 );
     	} catch (InterruptedException e1) {
     		// TODO Auto-generated catch block
     		e1.printStackTrace();
@@ -112,7 +112,7 @@ public class ChromeWebDriver {
  	        	
  	        	int moveStep = 0;
  	        	
- 	        	if(product.getSymbol().equals("HSI")) {
+ 	        	//if(product.getSymbol().equals("HSI")) {
  	        		if(exFirstBar != null) {
  	 	        		currentSecondBar = null;
  	 	        		List<WebElement> priceIndicators1 = driver.findElements(
@@ -138,7 +138,7 @@ public class ChromeWebDriver {
  	 	 	        		}
  	 	        		}
  	 	        	}
- 	        	}
+ 	        	//}
  	        	
  	        	List<Chart> chartList = new ArrayList<Chart>();
  	       		for (int i = 0; i < 3; i++) {		
@@ -165,9 +165,9 @@ public class ChromeWebDriver {
  	       		List<WebElement> priceIndicators3 = driver.findElements(
 	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
  	       		
- 	       		if(product.getSymbol().equals("HSI")) {
+ 	       		//if(product.getSymbol().equals("HSI")) {
  	       			exFirstBar = priceIndicators3.get(11).getText();
- 	       		}
+ 	       		//}
      	    }
      	         
  	         
@@ -187,7 +187,7 @@ public class ChromeWebDriver {
     	}
 		
     	try {
-			Thread.sleep(1000 * 20);
+			Thread.sleep(1000 * 5);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("Thread Interuption");
@@ -245,8 +245,8 @@ public class ChromeWebDriver {
             	
             	moveRightOneStep.perform();
             	
-        		if(barCurrrent != barRight && barCurrrent != barRightTwo) {
-        			while(barCurrrent != barRight && barCurrrent != barRightTwo) {
+        		if(barCurrrent != barRight || barCurrrent != barRightTwo) {
+        			while(barCurrrent != barRight || barCurrrent != barRightTwo) {
         				moveRightOneStep.perform();
         				
         				dataListCurrent  = driver.findElements(

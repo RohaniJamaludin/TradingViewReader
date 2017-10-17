@@ -338,6 +338,11 @@ public class Strategy {
 					}
 				}
 				
+			}else {
+				if(today.equals("Monday")) {
+					flag = false;
+				}
+				
 			}
 			
 			if(product.getIsTuesday()) {
@@ -347,6 +352,11 @@ public class Strategy {
 					}else {
 						flag = false;
 					}
+				}
+				
+			}else {
+				if(today.equals("Tuesday")) {
+					flag = false;
 				}
 				
 			}
@@ -360,6 +370,11 @@ public class Strategy {
 					}
 				}
 				
+			}else {
+				if(today.equals("Wednesday")) {
+					flag = false;
+				}
+				
 			}
 			
 			if(product.getIsThursday()) {
@@ -369,6 +384,11 @@ public class Strategy {
 					}else {
 						flag = false;
 					}
+				}
+				
+			}else {
+				if(today.equals("Thursday")) {
+					flag = false;
 				}
 				
 			}
@@ -382,6 +402,11 @@ public class Strategy {
 					}
 				}
 				
+			}else {
+				if(today.equals("Friday")) {
+					flag = false;
+				}
+				
 			}
 			
 			if(product.getIsSaturday()) {
@@ -391,6 +416,11 @@ public class Strategy {
 					}else {
 						flag = false;
 					}
+				}
+				
+			}else {
+				if(today.equals("Saturday")) {
+					flag = false;
 				}
 				
 			}
@@ -404,6 +434,11 @@ public class Strategy {
 					}
 				}
 				
+			}else {
+				if(today.equals("Sunday")) {
+					flag = false;
+				}
+				
 			}
 			
 		}
@@ -413,31 +448,37 @@ public class Strategy {
 	
 	private boolean isTradingPause(Product product) {
 		boolean flag = false;
-		DayOfWeek dayOfWeek = DayOfWeek.from(LocalDate.now());
-		String today = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-		
-		long hoursOfOperation = Time.getTimeDifference("HH:mm", product.getPauseTimeFrom(), product.getPauseTimeTo()); //in minutes
-		
-		String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
-		long elapseTime = Time.getTimeDifference("HH:mm", product.getPauseTimeFrom(), currentTime);
-		long passMidNightTime = Time.getTimeDifference("HH:mm", currentTime, "00:00");
-		long closeAfterMidNightTime =  Time.getTimeDifference("HH:mm", product.getPauseTimeTo() , "00:00");
-		boolean isDifferentDay = Time.isDifferentDay("HH:mm", product.getPauseTimeFrom(), product.getPauseTimeTo());
-		if(isDifferentDay) {
-			if(passMidNightTime>closeAfterMidNightTime) {
-				today = dayOfWeek.minus(1).getDisplayName(TextStyle.FULL, Locale.ENGLISH);	
-			}
-		}
-		
-		if(today.equals(product.getPauseDay())) {
-			if(elapseTime<hoursOfOperation) {
-				flag = true;
-			}else {
-				flag = false;
+		if(product.getIsTradingPause()) {
+			DayOfWeek dayOfWeek = DayOfWeek.from(LocalDate.now());
+			String today = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+			
+			long hoursOfOperation = Time.getTimeDifference("HH:mm", product.getPauseTimeFrom(), product.getPauseTimeTo()); //in minutes
+			
+			String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
+			long elapseTime = Time.getTimeDifference("HH:mm", product.getPauseTimeFrom(), currentTime);
+			long passMidNightTime = Time.getTimeDifference("HH:mm", currentTime, "00:00");
+			long closeAfterMidNightTime =  Time.getTimeDifference("HH:mm", product.getPauseTimeTo() , "00:00");
+			boolean isDifferentDay = Time.isDifferentDay("HH:mm", product.getPauseTimeFrom(), product.getPauseTimeTo());
+			if(isDifferentDay) {
+				if(passMidNightTime>closeAfterMidNightTime) {
+					today = dayOfWeek.minus(1).getDisplayName(TextStyle.FULL, Locale.ENGLISH);	
+				}
 			}
 			
+			if(today.equals(product.getPauseDay())) {
+				if(elapseTime<hoursOfOperation) {
+					flag = true;
+				}else {
+					flag = false;
+				}
+				
+			}
+			return flag;
+			
+		}else {
+			return flag;
 		}
-		return flag;
+		
 	}
 
 }
