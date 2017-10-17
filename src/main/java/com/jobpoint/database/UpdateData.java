@@ -20,7 +20,7 @@ public class UpdateData {
 				"isEnter = false," + 
 				"type = '' ," + 
 				"enter_price = '' " + 
-				"where id = 801 ");
+				"where id = 901 ");
 		
 		if(connection != null) connection.close();
 		

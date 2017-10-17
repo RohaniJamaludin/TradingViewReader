@@ -10,7 +10,7 @@ import java.sql.Statement;
 public class QueryData {
 	
 	public static final String JDBC_URL = "jdbc:derby:tradingdb;create=true";
-	public static final String SQL_STATEMENT = "select * from trading";
+	public static final String SQL_STATEMENT = "select * from state";
 		
 	//public static final String SQL_STATEMENT = "select * from product where id = 601";
 	

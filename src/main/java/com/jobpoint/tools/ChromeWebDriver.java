@@ -112,7 +112,7 @@ public class ChromeWebDriver {
  	        	
  	        	int moveStep = 0;
  	        	
- 	        	//if(product.getSymbol().equals("HSI")) {
+ 	        	if(product.getSymbol().equals("HSI")) {
  	        		if(exFirstBar != null) {
  	 	        		currentSecondBar = null;
  	 	        		List<WebElement> priceIndicators1 = driver.findElements(
@@ -138,7 +138,7 @@ public class ChromeWebDriver {
  	 	 	        		}
  	 	        		}
  	 	        	}
- 	        	//}
+ 	        	}
  	        	
  	        	List<Chart> chartList = new ArrayList<Chart>();
  	       		for (int i = 0; i < 3; i++) {		
@@ -165,9 +165,9 @@ public class ChromeWebDriver {
  	       		List<WebElement> priceIndicators3 = driver.findElements(
 	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
  	       		
- 	       		//if(product.getSymbol().equals("HSI")) {
+ 	       		if(product.getSymbol().equals("HSI")) {
  	       			exFirstBar = priceIndicators3.get(11).getText();
- 	       		//}
+ 	       		}
      	    }
      	         
  	         
