@@ -30,10 +30,17 @@ public class TradingController {
 		return tradingList; 
 	}
 	
-	public List<Trading> getAllTradingByForeignId(String object, int product_id){
+	public List<Trading> getAllTradingByForeignId(String object, int foreign_id){
 		CRUDTrading crudTrading = new CRUDTrading();
 		List<Trading> tradingList = new ArrayList<Trading>();
-		tradingList = crudTrading.findByForeignId(object, product_id);
+		tradingList = crudTrading.findByForeignId(object, foreign_id);
+		return tradingList; 
+	}
+	
+	public List<Trading> getTradingBarList(String object, int foreign_id, boolean situation){
+		CRUDTrading crudTrading = new CRUDTrading();
+		List<Trading> tradingList = new ArrayList<Trading>();
+		tradingList = crudTrading.findTopFive(object, foreign_id, situation);
 		return tradingList; 
 	}
 	

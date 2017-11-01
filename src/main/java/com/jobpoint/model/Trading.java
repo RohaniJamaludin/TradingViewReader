@@ -12,12 +12,21 @@ public class Trading {
 	private String exitTime;
 	private String profit;  
 	private boolean situation;  //when enter buy then  exit sell value is true and when enter sell then exit buy value is false 
+	private String firstBarEnter;
+	private String secondBarEnter;
+	private String thirdBarEnter;
+	private String firstBarExit;
+	private String secondBarExit;
+	private String thirdBarExit;
 	
 	public Trading() {
 		exitPrice = "n/a";
 		exitDate = "n/a";
 		exitTime = "n/a";
 		profit = "n/a";
+		firstBarExit = "n/a";
+		secondBarExit = "n/a";
+		thirdBarExit = "n/a";
 	}
 	
 	public int getId() {
@@ -99,5 +108,54 @@ public class Trading {
 	public void setSituation(boolean situation) {
 		this.situation = situation;
 	}
+	
+	public String getFirstBarEnter() {
+		return firstBarEnter;
+	}
+	
+	public void setFirstBarEnter(String firstBarEnter) {
+		this.firstBarEnter = firstBarEnter;
+	}
+	
+	public String getSecondBarEnter() {
+		return secondBarEnter;
+	}
+	
+	public void setSecondBarEnter(String secondBarEnter) {
+		this.secondBarEnter = secondBarEnter;
+	}
+	
+	public String getThirdBarEnter() {
+		return thirdBarEnter;
+	}
+	
+	public void setThirdBarEnter(String thirdBarEnter) {
+		this.thirdBarEnter = thirdBarEnter;
+	}
+	
+	public String getFirstBarExit() {
+		return firstBarExit;
+	}
+	
+	public void setFirstBarExit(String firstBarExit) {
+		this.firstBarExit = firstBarExit;
+	}
+	
+	public String getSecondBarExit() {
+		return secondBarExit;
+	}
+	
+	public void setSecondBarExit(String secondBarExit) {
+		this.secondBarExit = secondBarExit;
+	}
+	
+	public String getThirdBarExit() {
+		return thirdBarExit;
+	}
+	
+	public void setThirdBarExit(String thirdBarExit) {
+		this.thirdBarExit = thirdBarExit;
+	}
+	
 
 }

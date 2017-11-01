@@ -39,6 +39,12 @@ public class CRUDTrading {
 				trading.setExitDate(resultSet.getString("exit_date"));
 				trading.setExitTime(resultSet.getString("exit_time"));
 				trading.setProfit(resultSet.getString("profit"));
+				trading.setFirstBarEnter(resultSet.getString("first_bar_enter"));
+				trading.setSecondBarEnter(resultSet.getString("second_bar_enter"));
+				trading.setThirdBarEnter(resultSet.getString("third_bar_enter"));
+				trading.setFirstBarExit(resultSet.getString("first_bar_exit"));
+				trading.setSecondBarExit(resultSet.getString("second_bar_exit"));
+				trading.setThirdBarExit(resultSet.getString("third_bar_exit"));
 				trading.setSituation(resultSet.getBoolean("situation"));
 				
 			}
@@ -56,6 +62,49 @@ public class CRUDTrading {
 		
 		return null;
 		
+	}
+	
+	public List<Trading> findTopFive(String object, int foreignId, boolean situation){
+		try {
+			connection = DriverManager.getConnection(ConfigDatabase.JDBC_URL);
+			statement = connection.createStatement();
+		
+			String query = "Select id, product_id, first_bar_enter, second_bar_enter, third_bar_enter, "
+					+ " first_bar_exit, second_bar_exit, third_bar_exit, situation "
+					+ " from trading where " + object + "_id = " + foreignId + " AND situation = " + situation 
+					+ " ORDER BY id DESC FETCH NEXT 5 ROWS ONLY";
+			//"SELECT * FROM trading where product_id = 801 AND situation = false  ORDER BY id DESC FETCH NEXT 5 ROWS ONLY
+			ResultSet resultSet = statement.executeQuery(query);
+		
+			List<Trading> tradingList = new ArrayList<Trading>();
+		
+			while(resultSet.next()) {
+				Trading trading = new Trading();
+				trading.setId(resultSet.getInt("id"));
+				trading.setProductId(resultSet.getInt("product_id"));
+				trading.setFirstBarEnter(resultSet.getString("first_bar_enter"));
+				trading.setSecondBarEnter(resultSet.getString("second_bar_enter"));
+				trading.setThirdBarEnter(resultSet.getString("third_bar_enter"));
+				trading.setFirstBarExit(resultSet.getString("first_bar_exit"));
+				trading.setSecondBarExit(resultSet.getString("second_bar_exit"));
+				trading.setThirdBarExit(resultSet.getString("third_bar_exit"));
+				trading.setSituation(resultSet.getBoolean("situation"));
+			
+				tradingList.add(trading);
+			}
+
+			if(statement != null) statement.close();
+			if(connection != null) connection.close();
+		
+			return tradingList;
+		
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	public List<Trading> findByForeignId(String object, int foreignId) {
@@ -82,6 +131,12 @@ public class CRUDTrading {
 				trading.setExitDate(resultSet.getString("exit_date"));
 				trading.setExitTime(resultSet.getString("exit_time"));
 				trading.setProfit(resultSet.getString("profit"));
+				trading.setFirstBarEnter(resultSet.getString("first_bar_enter"));
+				trading.setSecondBarEnter(resultSet.getString("second_bar_enter"));
+				trading.setThirdBarEnter(resultSet.getString("third_bar_enter"));
+				trading.setFirstBarExit(resultSet.getString("first_bar_exit"));
+				trading.setSecondBarExit(resultSet.getString("second_bar_exit"));
+				trading.setThirdBarExit(resultSet.getString("third_bar_exit"));
 				trading.setSituation(resultSet.getBoolean("situation"));
 			
 				tradingList.add(trading);
@@ -125,6 +180,12 @@ public class CRUDTrading {
 				trading.setExitDate(resultSet.getString("exit_date"));
 				trading.setExitTime(resultSet.getString("exit_time"));
 				trading.setProfit(resultSet.getString("profit"));
+				trading.setFirstBarEnter(resultSet.getString("first_bar_enter"));
+				trading.setSecondBarEnter(resultSet.getString("second_bar_enter"));
+				trading.setThirdBarEnter(resultSet.getString("third_bar_enter"));
+				trading.setFirstBarExit(resultSet.getString("first_bar_exit"));
+				trading.setSecondBarExit(resultSet.getString("second_bar_exit"));
+				trading.setThirdBarExit(resultSet.getString("third_bar_exit"));
 				trading.setSituation(resultSet.getBoolean("situation"));
 			
 				tradingList.add(trading);
@@ -146,9 +207,10 @@ public class CRUDTrading {
 	public int insert(Trading trading) {
 		int id = 0;
 	
-		String query = "insert into trading (product_id, enter_price, enter_date, enter_time, exit_price, exit_date, " +
-						"exit_time, profit, situation) values " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String query = "insert into trading (product_id, enter_price, enter_date, enter_time, exit_price, exit_date, " 
+						+ "exit_time, profit, situation, first_bar_enter, second_bar_enter, third_bar_enter, "
+						+ "first_bar_exit, second_bar_exit, third_bar_exit) values " +
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	
 		try {
@@ -167,6 +229,13 @@ public class CRUDTrading {
 			preparedStatement.setString(7, trading.getExitTime());
 			preparedStatement.setString(8, trading.getProfit());
 			preparedStatement.setBoolean(9, trading.getSituation());
+			preparedStatement.setString(10, trading.getFirstBarEnter());
+			preparedStatement.setString(11, trading.getSecondBarEnter());
+			preparedStatement.setString(12, trading.getThirdBarEnter());
+			preparedStatement.setString(13, trading.getFirstBarExit());
+			preparedStatement.setString(14, trading.getSecondBarExit());
+			preparedStatement.setString(15, trading.getThirdBarExit());
+			
 
 			preparedStatement.executeUpdate();
 		
@@ -196,7 +265,13 @@ public class CRUDTrading {
 				"exit_date = ?," +
 				"exit_time = ?, " +
 				"profit = ?, " +
-				"situation = ? " +
+				"situation = ?, " +
+				"first_bar_enter = ?, " +
+				"second_bar_enter = ?, " +
+				"third_bar_enter = ?, " +
+				"first_bar_exit = ?, " +
+				"second_bar_exit = ?, " +
+				"third_bar_exit = ? " +
 				"where id = " + id;
 		
 		try {
@@ -213,6 +288,12 @@ public class CRUDTrading {
 			preparedStatement.setString(7, trading.getExitTime());
 			preparedStatement.setString(8, trading.getProfit());
 			preparedStatement.setBoolean(9, trading.getSituation());
+			preparedStatement.setString(10, trading.getFirstBarEnter());
+			preparedStatement.setString(11, trading.getSecondBarEnter());
+			preparedStatement.setString(12, trading.getThirdBarEnter());
+			preparedStatement.setString(13, trading.getFirstBarExit());
+			preparedStatement.setString(14, trading.getSecondBarExit());
+			preparedStatement.setString(15, trading.getThirdBarExit());
 			preparedStatement.executeUpdate();
 
 			if(preparedStatement != null) preparedStatement.close();

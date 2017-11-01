@@ -32,7 +32,6 @@ public class Time {
 				milisecondDifference = (milisecond2 - milisecond1)/(1000*60);
 			}
 			
-			System.out.println("time difference:" + milisecondDifference);
 		   
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block

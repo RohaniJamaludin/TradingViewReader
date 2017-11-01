@@ -58,6 +58,12 @@ public class CreateDatabase {
 				"exit_date varchar(10) not null, " +
 				"exit_time varchar(8) not null, " +
 				"situation boolean not null, " +
+				"first_bar_enter varchar(20), " +
+				"second_bar_enter varchar(20), " +
+				"third_bar_enter varchar(20), " +
+				"first_bar_exit varchar(20), " +
+				"second_bar_exit varchar(20), " +
+				"third_bar_exit varchar(20), " +
 				"PRIMARY KEY (id))", "trading"};
 		sqlQueryList.add(sqlQueryTrading);
 		

@@ -60,34 +60,27 @@ public class ChromeWebDriver {
 		
 		Action moveLeftOneStep = new Actions(driver).sendKeys(Keys.ARROW_LEFT).build();
         Action moveRightOneStep = new Actions(driver).sendKeys(Keys.ARROW_RIGHT).build();
+        Action jiggle = new Actions(driver).moveByOffset(0, -10).moveByOffset(0, 10).build();
         
         boolean flag = true;
         
         while(flag) {
-        	read(moveLeftOneStep,moveRightOneStep);
+        	read(moveLeftOneStep,moveRightOneStep, jiggle);
         }
-        
-        
         
 	}
 	
-	private void read(Action moveLeftOneStep, Action moveRightOneStep) {
+	private void read(Action moveLeftOneStep, Action moveRightOneStep, Action jiggle) {
 		try {
 			
 			WebElement tableWebElement =  getElementByLocator(By.cssSelector(
 					"table.chart-markup-table tr:nth-child(1) td:nth-child(2) canvas:nth-child(2)"));
 			
-			System.out.println("Web Element " + tableWebElement + "exist");
-			
 			WebElement paneWebElement =  getElementByLocator(By.cssSelector(
 							".pane-legend-item-value-container .pane-legend-item-value"));
 			
-			System.out.println("Web Element " + paneWebElement + "exist"); 
-			
 			WebElement priceWebElement =  getElementByLocator(By.cssSelector(
 					".dl-header-price"));
-			
-			System.out.println("Web Element " + priceWebElement + "exist"); 
 			
 			List<WebElement> priceListWebElement = null;
 			String price = "";
@@ -102,17 +95,19 @@ public class ChromeWebDriver {
 			
  	        boolean verifyElement = verifyElementListByLocater(By.cssSelector(
  	        			".pane-legend-item-value-container .pane-legend-item-value"));
+ 	        
+ 	        boolean verifyScanLine = verifyScanLine(moveLeftOneStep, moveRightOneStep);
  	        	
- 	        if(verifyElement) {
+ 	        if(verifyElement && verifyScanLine) {
  	        	System.out.println("Time now is:" + new SimpleDateFormat("HH:mm").format(new Date()));
  	        	
- 	        	while(!placeScanLine(moveLeftOneStep, moveRightOneStep)) {
+ 	       /* 	while(!placeScanLine(moveLeftOneStep, moveRightOneStep)) {
  	        		
- 	        	}
+ 	        	}*/
  	        	
  	        	int moveStep = 0;
  	        	
- 	        	if(product.getSymbol().equals("HSI")) {
+ 	        	//if(product.getSymbol().equals("HSI")) {
  	        		if(exFirstBar != null) {
  	 	        		currentSecondBar = null;
  	 	        		List<WebElement> priceIndicators1 = driver.findElements(
@@ -137,21 +132,31 @@ public class ChromeWebDriver {
 
  	 	 	        		}
  	 	        		}
- 	 	        	}
+ 	 	        	//}
  	        	}
  	        	
  	        	List<Chart> chartList = new ArrayList<Chart>();
- 	       		for (int i = 0; i < 3; i++) {		
+ 	       		for (int i = 0; i < 3; i++) {
+ 	       			jiggle.perform();
  	       			List<WebElement> dataList = driver.findElements(
  	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
- 	        		System.out.println(dataList.get(5).getText()  + "," +dataList.get(6).getText()  + "," + dataList.get(11).getText());
+ 	       			
+ 	        		System.out.println(product.getSymbol()  + "," + dataList.get(5).getText()  + "," +dataList.get(6).getText()  + "," + dataList.get(11).getText());
  	        		
  	        		Chart chart = new Chart();
     	        	chart.setArrowGreen(Float.parseFloat(dataList.get(5).getText()));
     	        	chart.setArrowRed(Float.parseFloat(dataList.get(6).getText()));
-    	        	chart.setBar(Float.parseFloat(dataList.get(11).getText()));
+    	        	chart.setBar(dataList.get(11).getText());
     	        	
     	        	chartList.add(chart);
+    	        	
+    	        	try {
+    	    			Thread.sleep(150);
+    	    		} catch (InterruptedException e1) {
+    	    			// TODO Auto-generated catch block
+    	    			System.out.println("Thread Interuption");
+    	    			e1.printStackTrace();
+    	    		}
  	        		moveLeftOneStep.perform();
  	        	} 
  	       		
@@ -165,9 +170,9 @@ public class ChromeWebDriver {
  	       		List<WebElement> priceIndicators3 = driver.findElements(
 	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
  	       		
- 	       		if(product.getSymbol().equals("HSI")) {
+ 	       		//if(product.getSymbol().equals("HSI")) {
  	       			exFirstBar = priceIndicators3.get(11).getText();
- 	       		}
+ 	       		//}
      	    }
      	         
  	         
@@ -187,7 +192,7 @@ public class ChromeWebDriver {
     	}
 		
     	try {
-			Thread.sleep(1000 * 20);
+			Thread.sleep(1000 * 15);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("Thread Interuption");
@@ -245,8 +250,8 @@ public class ChromeWebDriver {
             	
             	moveRightOneStep.perform();
             	
-        		if(barCurrrent != barRight && barCurrrent != barRightTwo) {
-        			while(barCurrrent != barRight && barCurrrent != barRightTwo) {
+        		if(barCurrrent != barRight || barCurrrent != barRightTwo) {
+        			while(barCurrrent != barRight || barCurrrent != barRightTwo) {
         				moveRightOneStep.perform();
         				
         				dataListCurrent  = driver.findElements(
@@ -269,10 +274,11 @@ public class ChromeWebDriver {
         				
         				moveLeftOneStep.perform();
         			}
-        			
-        			moveLeftOneStep.perform();
+        			exFirstBar = null;
+        			//moveLeftOneStep.perform();
         		}else {
         			if(barCurrrent == barLeft) {
+        				/*exFirstBar = null;*/
         				moveLeftOneStep.perform();
         				try {
         					Thread.sleep(1000 * 1);
@@ -283,7 +289,9 @@ public class ChromeWebDriver {
         					flag = false;
         				}
         			}else{
-        				flag = true;
+        				if(barCurrrent == barRight) {
+        					flag = true;
+        				}
         			}
         		}
         		
@@ -366,6 +374,34 @@ public class ChromeWebDriver {
 		return found;
 	}
 	
+	
+	public Boolean verifyScanLine(final Action moveLeftOneStep, final Action moveRightOneStep) {
+		boolean flag = false;
+		final long startTime = System.currentTimeMillis();
+		
+		Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+				   .withTimeout(30, TimeUnit.SECONDS)
+				   .pollingEvery(5, TimeUnit.SECONDS)
+				   .ignoring( StaleElementReferenceException.class ) ;
+		
+		while ( (System.currentTimeMillis() - startTime) < 91000 ) {
+			  // LOGGER.info( "Searching for element. Try number " + (tries++) ); 
+			   try {
+				   Function<WebDriver, Boolean> function = new Function<WebDriver, Boolean>() {
+						public Boolean apply(WebDriver webDriver) {
+	     	                return placeScanLine(moveLeftOneStep, moveRightOneStep);
+						}
+					};
+					wait.until(function);
+					flag = true;
+					break;
+			   } catch ( StaleElementReferenceException e ) {      
+			    //LOGGER.info( "Stale element: \n" + e.getMessage() + "\n");
+			   }
+		}
+		
+		return flag;
+	}
 	
 	
 }

@@ -3,7 +3,7 @@ package com.jobpoint.model;
 public class Chart {
 	private double arrow_green;
 	private double arrow_red;
-	private double bar;
+	private String bar;
 	
 	public double getArrowGreen() {
 		return arrow_green;
@@ -21,11 +21,11 @@ public class Chart {
 		this.arrow_red = arrow_red;
 	}
 	
-	public double getBar() {
+	public String getBar() {
 		return bar;
 	}
 	
-	public void setBar(double bar) {
+	public void setBar(String bar) {
 		this.bar = bar;
 	}
 }
