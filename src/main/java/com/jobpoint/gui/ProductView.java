@@ -46,16 +46,18 @@ public class ProductView implements ActionListener, ItemListener{
 	private JCheckBox checkBoxMarket, checkBoxPauseTrading, checkBoxMonday, checkBoxTuesday, checkBoxWednesday, checkBoxThursday, checkBoxFriday, checkBoxSaturday, checkBoxSunday;
 	private JComboBox<String> dayCombo, strategyCombo, orderTypeCombo;
 	private TimePicker openTimePicker, closeTimePicker, pauseTradingTimeFromPicker, pauseTradingTimeToPicker ;
-	private JButton saveButton, saveRunButton, closeButton;
+	private JButton saveButton, saveRunButton, stopButton, closeButton;
 	private JPanel marketPanel, pauseTradingPanel, buttonPanel;
 	private boolean isNew;
 	private int rowIndex, id;
+	private Thread thread;
 	
 	
 	public ProductView(boolean isNew, Product product, List<Trading> tradingList, int rowIndex) {
 		initialize();
 		this.isNew = isNew;
 		this.rowIndex = rowIndex;
+		this.stopButton.setEnabled(false);
 		//setupNew();
 		if(isNew) {
 			setupNew();
@@ -460,6 +462,10 @@ public class ProductView implements ActionListener, ItemListener{
 		saveRunButton.addActionListener(this);
 		buttonPanel.add(saveRunButton);
 		
+		stopButton = new JButton("Stop");
+		stopButton.addActionListener(this);
+		buttonPanel.add(stopButton);
+		
 		closeButton = new JButton("Close");
 		closeButton.addActionListener(this);
 		buttonPanel.add(closeButton);
@@ -623,8 +629,18 @@ public class ProductView implements ActionListener, ItemListener{
 		if(event.getSource().equals(saveRunButton)) {
 			Product product = saveProduct();
 			ProductController productController = new ProductController();
-			productController.runProduct(product, model);
+			thread = productController.runProduct(product, model);
+			saveRunButton.setEnabled(false);
+			stopButton.setEnabled(true);
 		} 
+		
+		if(event.getSource().equals(stopButton)) {
+			ProductController productController = new ProductController();
+			productController.stopProduct(thread, id);
+			stopButton.setEnabled(false);
+			saveRunButton.setEnabled(true);
+			
+		}
 		
 		if(event.getSource().equals(closeButton)) {
 			System.out.println("Cancel");

@@ -8,8 +8,10 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import com.jobpoint.database.CRUDBar;
 import com.jobpoint.database.CRUDTrading;
 import com.jobpoint.gui.TradingTableModel;
+import com.jobpoint.model.Bar;
 import com.jobpoint.model.Chart;
 import com.jobpoint.model.Product;
 import com.jobpoint.model.State;

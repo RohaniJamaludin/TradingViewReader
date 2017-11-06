@@ -1,17 +1,21 @@
 package com.jobpoint.tools;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.jobpoint.controller.BarController;
 import com.jobpoint.controller.StateController;
 import com.jobpoint.controller.TradingController;
 import com.jobpoint.gui.TradingTableModel;
+import com.jobpoint.model.Bar;
 import com.jobpoint.model.Chart;
 import com.jobpoint.model.Product;
 import com.jobpoint.model.State;
@@ -41,151 +45,154 @@ public class Strategy {
 		
 		if(isTradingAllow(product) && !isTradingPause(product)) {
 			
-			if(state.getIsEnter() && state.getType().equals("buy")) {
-				if(barOne.getArrowRed() == 1.000) {
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
-								|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
-							flag = true;
-							break;
+			if(isBarCurrent(product)) {
+				
+				if(state.getIsEnter() && state.getType().equals("buy")) {
+					if(barOne.getArrowRed() == 1.000) {
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
+									|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
+								flag = true;
+								break;
+							}
 						}
-					}
-					
-					if(!flag) {
-						//exit market and sell
-						state.setIsEnter(false);
-						state.setType("");
-						state.setEnterPrice("");
 						
-						trading.setExitPrice(price);
-						trading.setFirstBarExit(barOne.getBar());
-						trading.setSecondBarExit(barTwo.getBar());
-						trading.setThirdBarExit(barThree.getBar());
-						tradingController.updateTrading(trading, state, model);
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price,  product.getLot(), product.getOrderType(), "1");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						if(!flag) {
+							//exit market and sell
+							state.setIsEnter(false);
+							state.setType("");
+							state.setEnterPrice("");
+							
+							trading.setExitPrice(price);
+							trading.setFirstBarExit(barOne.getBar());
+							trading.setSecondBarExit(barTwo.getBar());
+							trading.setThirdBarExit(barThree.getBar());
+							tradingController.updateTrading(trading, state, model);
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price,  product.getLot(), product.getOrderType(), "1");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
-					}
-					
-				}
-			}
-			
-			if(state.getIsEnter() && state.getType().equals("sell")) {
-				if(barOne.getArrowGreen() == 1.000) {
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
-								|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
-							flag = true;
-							break;
-						}
-					}
-					
-					if(!flag) {
-						//exit market and buy
-						state.setIsEnter(false);
-						state.setType("");
-						state.setEnterPrice("");
 						
-						trading.setExitPrice(price);
-						trading.setFirstBarExit(barOne.getBar());
-						trading.setSecondBarExit(barTwo.getBar());
-						trading.setThirdBarExit(barThree.getBar());
-						tradingController.updateTrading(trading, state, model);
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(),  "0");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					
-				}
-			}
-			
-			if(!state.getIsEnter() && state.getType().equals("")) {
-				if(barOne.getArrowRed() == 1.000) {
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarEnter()) || barTwo.getBar().equals(tradingBar.getSecondBarEnter()) 
-								|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
-							flag = true;
-							break;
-						}
-					}
-					
-					if(!flag) {
-						//enter market and sell
-						state.setIsEnter(true);
-						state.setType("sell");
-						state.setEnterPrice(price);
-						
-						trading = new Trading();
-						trading.setEnterPrice(price);
-						trading.setFirstBarEnter(barOne.getBar());
-						trading.setSecondBarEnter(barTwo.getBar());
-						trading.setThirdBarEnter(barThree.getBar());
-						trading.setSituation(false);
-						
-						tradingController.saveTrading(trading, state, model);
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(),  "1");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					
-				}
-			}
-			
-			if(!state.getIsEnter() && state.getType().equals("")) {
-				if(barOne.getArrowGreen() == 1.000) {
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarEnter())  || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
-								|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
-							flag = true;
-							break;
-						}
-					}
-					
-					if(!flag) {
-						//enter market and buy
-						state.setIsEnter(true);
-						state.setType("buy");
-						state.setEnterPrice(price);
-						
-						trading = new Trading();
-						trading.setEnterPrice(price);
-						trading.setFirstBarEnter(barOne.getBar());
-						trading.setSecondBarEnter(barTwo.getBar());
-						trading.setThirdBarEnter(barThree.getBar());
-						trading.setSituation(true);
-						
-						tradingController.saveTrading(trading, state, model);
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 					}
 				}
+				
+				if(state.getIsEnter() && state.getType().equals("sell")) {
+					if(barOne.getArrowGreen() == 1.000) {
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
+									|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
+								flag = true;
+								break;
+							}
+						}
+						
+						if(!flag) {
+							//exit market and buy
+							state.setIsEnter(false);
+							state.setType("");
+							state.setEnterPrice("");
+							
+							trading.setExitPrice(price);
+							trading.setFirstBarExit(barOne.getBar());
+							trading.setSecondBarExit(barTwo.getBar());
+							trading.setThirdBarExit(barThree.getBar());
+							tradingController.updateTrading(trading, state, model);
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(),  "0");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						
+					}
+				}
+				
+				if(!state.getIsEnter() && state.getType().equals("")) {
+					if(barOne.getArrowRed() == 1.000) {
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarEnter()) || barTwo.getBar().equals(tradingBar.getSecondBarEnter()) 
+									|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
+								flag = true;
+								break;
+							}
+						}
+						
+						if(!flag) {
+							//enter market and sell
+							state.setIsEnter(true);
+							state.setType("sell");
+							state.setEnterPrice(price);
+							
+							trading = new Trading();
+							trading.setEnterPrice(price);
+							trading.setFirstBarEnter(barOne.getBar());
+							trading.setSecondBarEnter(barTwo.getBar());
+							trading.setThirdBarEnter(barThree.getBar());
+							trading.setSituation(false);
+							
+							tradingController.saveTrading(trading, state, model);
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(),  "1");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						
+					}
+				}
+				
+				if(!state.getIsEnter() && state.getType().equals("")) {
+					if(barOne.getArrowGreen() == 1.000) {
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarEnter())  || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
+									|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
+								flag = true;
+								break;
+							}
+						}
+						
+						if(!flag) {
+							//enter market and buy
+							state.setIsEnter(true);
+							state.setType("buy");
+							state.setEnterPrice(price);
+							
+							trading = new Trading();
+							trading.setEnterPrice(price);
+							trading.setFirstBarEnter(barOne.getBar());
+							trading.setSecondBarEnter(barTwo.getBar());
+							trading.setThirdBarEnter(barThree.getBar());
+							trading.setSituation(true);
+							
+							tradingController.saveTrading(trading, state, model);
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				
 			}
-			
 			
 		}else {
 			if(state.getIsEnter()) {
@@ -251,166 +258,167 @@ public class Strategy {
 		
 		if(isTradingAllow(product) && !isTradingPause(product)) {
 			
-			if(state.getIsEnter() && state.getType().equals("buy")) {
-				if(barOne.getArrowRed() == 1.000 || Float.parseFloat(barOne.getBar()) < Float.parseFloat(barTwo.getBar())) {
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
-								|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
-							flag = true;
-							break;
-						}
-					}
-					
-					if(!flag) {
-						//exit market and sell
-						state.setIsEnter(false);
-						state.setType("");
-						state.setEnterPrice("");
-						
-						trading.setExitPrice(price);
-						trading.setFirstBarExit(barOne.getBar());
-						trading.setSecondBarExit(barTwo.getBar());
-						trading.setThirdBarExit(barThree.getBar());
-						tradingController.updateTrading(trading, state, model);
-						
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "1");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					
-				}
-			}
-			
-			if(state.getIsEnter() && state.getType().equals("sell")) {
-				if(barOne.getArrowGreen() == 1.000 || Float.parseFloat(barOne.getBar()) > Float.parseFloat(barTwo.getBar())) {
-
-					boolean flag = false;
-					List<Trading> tradingListBar = new ArrayList<Trading>();
-					tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
-					for(Trading tradingBar : tradingListBar) {
-						if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
-								|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
-							flag = true;
-							break;
-						}
-					}
-					
-					if(!flag) {
-						//exit market and buy
-						state.setIsEnter(false);
-						state.setType("");
-						state.setEnterPrice("");
-						
-						trading.setExitPrice(price);
-						trading.setFirstBarExit(barOne.getBar());
-						trading.setSecondBarExit(barTwo.getBar());
-						trading.setThirdBarExit(barThree.getBar());
-						tradingController.updateTrading(trading, state, model);
-						
-						try {
-							pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-			
-			if(!state.getIsEnter() && state.getType().equals("")) {
-				if(barOne.getArrowGreen() == 1.000) {
-					if(Float.parseFloat(barOne.getBar()) > Float.parseFloat(barTwo.getBar())) {
-						if(Float.parseFloat(barTwo.getBar()) > Float.parseFloat(barThree.getBar())) {
-							boolean flag = false;
-							List<Trading> tradingListBar = new ArrayList<Trading>();
-							tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
-							for(Trading tradingBar : tradingListBar) {
-								if(barOne.getBar().equals( tradingBar.getFirstBarEnter()) || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
-										|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
-									flag = true;
-									break;
-								}
+			if(isBarCurrent(product)) {
+				if(state.getIsEnter() && state.getType().equals("buy")) {
+					if(barOne.getArrowRed() == 1.000 || Float.parseFloat(barOne.getBar()) < Float.parseFloat(barTwo.getBar())) {
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
+									|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
+								flag = true;
+								break;
 							}
-							
-							if(!flag) {
-								//enter market and buy
-								state.setIsEnter(true);
-								state.setType("buy");
-								state.setEnterPrice(price);
-								
-								trading = new Trading();
-								trading.setEnterPrice(price);
-								trading.setSituation(true);
-								trading.setFirstBarEnter(barOne.getBar());
-								trading.setSecondBarEnter(barTwo.getBar());
-								trading.setThirdBarEnter(barThree.getBar());
-								
-								tradingController.saveTrading(trading, state, model);
-								
-								try {
-									pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
-								} catch (Exception e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								
-							}
-							
 						}
+						
+						if(!flag) {
+							//exit market and sell
+							state.setIsEnter(false);
+							state.setType("");
+							state.setEnterPrice("");
+							
+							trading.setExitPrice(price);
+							trading.setFirstBarExit(barOne.getBar());
+							trading.setSecondBarExit(barTwo.getBar());
+							trading.setThirdBarExit(barThree.getBar());
+							tradingController.updateTrading(trading, state, model);
+							
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "1");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						
 					}
-					
 				}
 				
-				if(barOne.getArrowRed() == 1.000) {
-					if(Float.parseFloat(barOne.getBar()) < Float.parseFloat(barTwo.getBar())) {
-						if(Float.parseFloat(barTwo.getBar()) < Float.parseFloat(barThree.getBar())) {
-							boolean flag = false;
-							List<Trading> tradingListBar = new ArrayList<Trading>();
-							tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
-							for(Trading tradingBar : tradingListBar) {
-								if(barOne.getBar().equals(tradingBar.getFirstBarEnter())  || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
-										|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
-									flag = true;
-									break;
-								}
-							}
-							
-							if(!flag) {
-								//enter market and sell
-								state.setIsEnter(true);
-								state.setType("sell");
-								state.setEnterPrice(price);
-								
-								trading = new Trading();
-								trading.setEnterPrice(price);
-								trading.setSituation(false);
-								trading.setFirstBarEnter(barOne.getBar());
-								trading.setSecondBarEnter(barTwo.getBar());
-								trading.setThirdBarEnter(barThree.getBar());
-								tradingController.saveTrading(trading, state, model);
-								
-								try {
-									pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "1");
-								} catch (Exception e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							}
-							
+				if(state.getIsEnter() && state.getType().equals("sell")) {
+					if(barOne.getArrowGreen() == 1.000 || Float.parseFloat(barOne.getBar()) > Float.parseFloat(barTwo.getBar())) {
 
+						boolean flag = false;
+						List<Trading> tradingListBar = new ArrayList<Trading>();
+						tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
+						for(Trading tradingBar : tradingListBar) {
+							if(barOne.getBar().equals(tradingBar.getFirstBarExit()) || barTwo.getBar().equals(tradingBar.getSecondBarExit())
+									|| barThree.getBar().equals(tradingBar.getThirdBarExit())) {
+								flag = true;
+								break;
+							}
+						}
+						
+						if(!flag) {
+							//exit market and buy
+							state.setIsEnter(false);
+							state.setType("");
+							state.setEnterPrice("");
+							
+							trading.setExitPrice(price);
+							trading.setFirstBarExit(barOne.getBar());
+							trading.setSecondBarExit(barTwo.getBar());
+							trading.setThirdBarExit(barThree.getBar());
+							tradingController.updateTrading(trading, state, model);
+							
+							try {
+								pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
-					
 				}
+				
+				if(!state.getIsEnter() && state.getType().equals("")) {
+					if(barOne.getArrowGreen() == 1.000) {
+						if(Float.parseFloat(barOne.getBar()) > Float.parseFloat(barTwo.getBar())) {
+							if(Float.parseFloat(barTwo.getBar()) > Float.parseFloat(barThree.getBar())) {
+								boolean flag = false;
+								List<Trading> tradingListBar = new ArrayList<Trading>();
+								tradingListBar = tradingController.getTradingBarList("product", product.getId(), true);
+								for(Trading tradingBar : tradingListBar) {
+									if(barOne.getBar().equals( tradingBar.getFirstBarEnter()) || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
+											|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
+										flag = true;
+										break;
+									}
+								}
+								
+								if(!flag) {
+									//enter market and buy
+									state.setIsEnter(true);
+									state.setType("buy");
+									state.setEnterPrice(price);
+									
+									trading = new Trading();
+									trading.setEnterPrice(price);
+									trading.setSituation(true);
+									trading.setFirstBarEnter(barOne.getBar());
+									trading.setSecondBarEnter(barTwo.getBar());
+									trading.setThirdBarEnter(barThree.getBar());
+									
+									tradingController.saveTrading(trading, state, model);
+									
+									try {
+										pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "0");
+									} catch (Exception e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									
+								}
+								
+							}
+						}
+						
+					}
 					
+					if(barOne.getArrowRed() == 1.000) {
+						if(Float.parseFloat(barOne.getBar()) < Float.parseFloat(barTwo.getBar())) {
+							if(Float.parseFloat(barTwo.getBar()) < Float.parseFloat(barThree.getBar())) {
+								boolean flag = false;
+								List<Trading> tradingListBar = new ArrayList<Trading>();
+								tradingListBar = tradingController.getTradingBarList("product", product.getId(), false);
+								for(Trading tradingBar : tradingListBar) {
+									if(barOne.getBar().equals(tradingBar.getFirstBarEnter())  || barTwo.getBar().equals(tradingBar.getSecondBarEnter())
+											|| barThree.getBar().equals(tradingBar.getThirdBarEnter())) {
+										flag = true;
+										break;
+									}
+								}
+								
+								if(!flag) {
+									//enter market and sell
+									state.setIsEnter(true);
+									state.setType("sell");
+									state.setEnterPrice(price);
+									
+									trading = new Trading();
+									trading.setEnterPrice(price);
+									trading.setSituation(false);
+									trading.setFirstBarEnter(barOne.getBar());
+									trading.setSecondBarEnter(barTwo.getBar());
+									trading.setThirdBarEnter(barThree.getBar());
+									tradingController.saveTrading(trading, state, model);
+									
+									try {
+										pta.sendGet(product.getPtaUrl(), product.getSymbol(), price, product.getLot(), product.getOrderType(), "1");
+									} catch (Exception e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+								
+
+							}
+						}
+						
+					}
+						
+				}
 			}
-			
 			
 		}else {
 			if(state.getType().equals("buy")) {
@@ -617,6 +625,44 @@ public class Strategy {
 		}
 		return flag;
 		
+	}
+	
+	private boolean isBarCurrent(Product product) {
+		
+		boolean flag = false;
+		
+		Bar bar = new Bar();
+		BarController barController = new BarController();
+		
+		SimpleDateFormat myFormat = new SimpleDateFormat("dd/MM/yyyy");
+		bar = barController.getCurrentBar(product.getId());
+		
+		if(!bar.getValue().equals("")) {
+			String currentDate = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+			String currentTime = new SimpleDateFormat("HH:mm").format(new Date());
+			
+			Date date1;
+		    Date date2;
+		    
+			try {
+				date1 = myFormat.parse(bar.getDate());
+				date2 = myFormat.parse(currentDate);
+				long  dayDifference = date2.getTime() - date1.getTime();
+				
+				if(dayDifference == 0) {
+					long timeDifference = Time.getTimeDifference("HH:mm", bar.getTime(), currentTime); //in minutes
+					if(timeDifference < 2) {
+						flag = true;
+					}
+				}
+				
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return flag;
 	}
 
 }

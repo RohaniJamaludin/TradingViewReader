@@ -78,6 +78,16 @@ public class CreateDatabase {
 				"PRIMARY KEY (id))", "state"};
 		sqlQueryList.add(sqlQueryCreateTableState);
 		
+		String[] sqlQueryCreateTableBar = {"Create table bar " +
+				"(id int not null  GENERATED ALWAYS AS IDENTITY " + 
+				"(START WITH 1, INCREMENT BY 1), " +
+				"product_id int not null, " +
+				"value varchar(20) not null, " +
+				"date varchar(10) not null, " +
+				"time varchar(8) not null, " +
+				"PRIMARY KEY (id))", "bar"};
+		sqlQueryList.add(sqlQueryCreateTableBar);
+		
 		Iterator<String[]> iterator = sqlQueryList.iterator();
 		
 		while(iterator.hasNext()) {

@@ -21,8 +21,10 @@ import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
 import com.google.common.base.Function;
+import com.jobpoint.controller.BarController;
 import com.jobpoint.controller.TradingController;
 import com.jobpoint.gui.TradingTableModel;
+import com.jobpoint.model.Bar;
 import com.jobpoint.model.Chart;
 import com.jobpoint.model.Product;
 
@@ -30,8 +32,6 @@ public class ChromeWebDriver {
 	
 	private final WebDriver driver;
 	private final Product product;
-	private String exFirstBar;
-    private String currentSecondBar;
     private TradingTableModel model;
 	public ChromeWebDriver(Product product, TradingTableModel model) {
 		//String chromeDriverPath = null;
@@ -56,6 +56,7 @@ public class ChromeWebDriver {
     	} catch (InterruptedException e1) {
     		// TODO Auto-generated catch block
     		e1.printStackTrace();
+    		driver.quit();
     	}
 		
 		Action moveLeftOneStep = new Actions(driver).sendKeys(Keys.ARROW_LEFT).build();
@@ -65,7 +66,18 @@ public class ChromeWebDriver {
         boolean flag = true;
         
         while(flag) {
-        	read(moveLeftOneStep,moveRightOneStep, jiggle);
+
+				read(moveLeftOneStep,moveRightOneStep, jiggle);
+
+        	try {
+    			Thread.sleep(1000 * 10);
+    		} catch (InterruptedException e1) {
+    			// TODO Auto-generated catch block
+    			System.out.println("Thread Interuption/stop");
+    			e1.printStackTrace();
+    			flag = false;
+    			driver.quit();
+    		}
         }
         
 	}
@@ -73,19 +85,19 @@ public class ChromeWebDriver {
 	private void read(Action moveLeftOneStep, Action moveRightOneStep, Action jiggle) {
 		try {
 			
+			
 			WebElement tableWebElement =  getElementByLocator(By.cssSelector(
 					"table.chart-markup-table tr:nth-child(1) td:nth-child(2) canvas:nth-child(2)"));
-			
 			WebElement paneWebElement =  getElementByLocator(By.cssSelector(
 							".pane-legend-item-value-container .pane-legend-item-value"));
-			
 			WebElement priceWebElement =  getElementByLocator(By.cssSelector(
 					".dl-header-price"));
 			
 			List<WebElement> priceListWebElement = null;
 			String price = "";
+			
 			if(priceWebElement != null) {
-				priceListWebElement =  driver.findElements(
+				priceListWebElement =  getElementListByLocater(
 	    	                By.cssSelector(".dl-header-price"));
 			}
 			
@@ -98,85 +110,105 @@ public class ChromeWebDriver {
  	        
  	        boolean verifyScanLine = verifyScanLine(moveLeftOneStep, moveRightOneStep);
  	        	
+ 	        
  	        if(verifyElement && verifyScanLine) {
+ 	        	
  	        	System.out.println("Time now is:" + new SimpleDateFormat("HH:mm").format(new Date()));
  	        	
- 	       /* 	while(!placeScanLine(moveLeftOneStep, moveRightOneStep)) {
- 	        		
- 	        	}*/
+ 	        	List<WebElement> chartData = getElementListByLocater(
+ 	 	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+ 	        	
+ 	        	String bar = chartData.get(11).getText();
+ 	        	
+ 	        	System.out.println("Bar now is:" + bar);
  	        	
  	        	int moveStep = 0;
  	        	
- 	        	//if(product.getSymbol().equals("HSI")) {
- 	        		if(exFirstBar != null) {
- 	 	        		currentSecondBar = null;
- 	 	        		List<WebElement> priceIndicators1 = driver.findElements(
- 	 	    	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
- 		        			String currentFirstBar = priceIndicators1.get(11).getText();
- 	 	        		if(!currentFirstBar.equals(exFirstBar) ) {
- 	 	        			while (!exFirstBar.equals(currentSecondBar)) {
- 	 	 	        			moveLeftOneStep.perform();
- 	 	 	        			List<WebElement> priceIndicators2 = driver.findElements(
- 	 	     	    	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
- 	 	 	        			currentSecondBar = priceIndicators2.get(11).getText();
- 	 	 	        			moveStep++;
- 	 	 	        			
- 	 	 	        			if(exFirstBar.equals(currentSecondBar)) {
- 		 	        				moveRightOneStep.perform();
- 		 	        				moveStep--;
- 		 	        			}
+ 	        	BarController barController = new BarController();
+ 	        	Bar currentSaveBar = new Bar();
+ 	        	
+ 	        	currentSaveBar = barController.getCurrentBar(product.getId());
+ 	        	
+ 	        	System.out.println("Current Save Bar:" + currentSaveBar.getValue());
+ 	        	
+ 	        		if(!currentSaveBar.getValue().equals("")) {
+ 	        			
+ 	 	        		//currentSecondBar = null;
+/* 	 	        		List<WebElement> priceIndicators1 = getElementListByLocater(
+ 	 	    	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));*/
+ 		        		String currentFirstBar = bar;
+ 		        			
+ 		        		boolean arrow = false;
+ 	 	        		if(!currentFirstBar.equals(currentSaveBar.getValue()) ) {
+ 	 	        			
+ 	 	        			barController.updateCurrentBar(product.getId(), currentFirstBar);
+ 	 	        			
+ 	 	        			moveLeftOneStep.perform();
+ 	 	        			
+	 	 	        		List<WebElement> priceIndicators2 = getElementListByLocater(
+	 	     	    	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+	 	 	        		String currentSecondBar = priceIndicators2.get(11).getText();
+	 	 	        		
+	 	 	        		moveRightOneStep.perform();
+	 	 	        			
+ 	 	        			while (!currentSaveBar.getValue().equals(currentSecondBar)) {
  	 	 	        			
  	 	 	        			if(priceIndicators2.get(5).getText().equals("1.0000") || priceIndicators2.get(6).getText().equals("1.0000") ) {
- 	 	 	        				currentSecondBar = exFirstBar;
+ 	 	 	        				
+ 	 	 	        				barController.updateCurrentBar(product.getId(), currentSecondBar);
+ 	 	 	        				currentSecondBar = currentSaveBar.getValue();
+ 	 	 	        				arrow = true;
+ 	 	 	        				//moveLeftOneStep.perform();
+ 	 	 	        				//moveStep++;
  	 	 	        			}
-
+ 	 	 	        			
+ 	 	 	        			if(!currentSaveBar.getValue().equals(currentSecondBar)) {
+ 		 	        				//moveRightOneStep.perform();
+ 		 	        				//moveStep--;
+ 	 	 	        				
+ 	 	 	        				moveLeftOneStep.perform();
+ 	 	 	        				moveStep++;
+ 	 	 	        				List<WebElement> priceIndicators3 = getElementListByLocater(
+ 		 	     	    	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+ 	 	 	        				currentSecondBar = priceIndicators3.get(11).getText();
+ 	 	 	        				System.out.println("Current Second Bar:" + currentSecondBar);
+ 	 	 	        				System.out.println("Ex First Bar:" + currentSaveBar.getValue());
+ 	 	 	        				
+ 		 	        			}
+ 	 	 	        			
+ 	 	 	        			if(!arrow && currentSaveBar.getValue().equals(currentSecondBar)) {
+ 	 	 	        				
+ 	 	 	        				moveRightOneStep.perform();
+ 	 	 	        				moveStep--;
+ 	 	 	        			}
+ 	 	 	        			
+ 	 	 	        			System.out.println("Move Step:" + moveStep);
  	 	 	        		}
+ 	 	        			
  	 	        		}
+ 	 	        		
+ 	 	        		scanChart(jiggle, moveRightOneStep, moveLeftOneStep, moveStep, price);
+	 	        			
+	 	   	       		if(moveStep > 0) {
+	 	        			barController.updateCurrentBar(product.getId(), currentFirstBar);
+	 	   	       			scanChart(jiggle, moveRightOneStep, moveLeftOneStep, 0, price);
+	 	   	       		}
  	 	        	//}
+ 	        	} else {
+ 	    	        currentSaveBar.setValue(bar);
+ 	    	        barController.updateCurrentBar(product.getId(), currentSaveBar.getValue());
  	        	}
  	        	
- 	        	List<Chart> chartList = new ArrayList<Chart>();
- 	       		for (int i = 0; i < 3; i++) {
- 	       			jiggle.perform();
- 	       			List<WebElement> dataList = driver.findElements(
- 	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
- 	       			
- 	        		System.out.println(product.getSymbol()  + "," + dataList.get(5).getText()  + "," +dataList.get(6).getText()  + "," + dataList.get(11).getText());
- 	        		
- 	        		Chart chart = new Chart();
-    	        	chart.setArrowGreen(Float.parseFloat(dataList.get(5).getText()));
-    	        	chart.setArrowRed(Float.parseFloat(dataList.get(6).getText()));
-    	        	chart.setBar(dataList.get(11).getText());
-    	        	
-    	        	chartList.add(chart);
-    	        	
-    	        	try {
-    	    			Thread.sleep(150);
-    	    		} catch (InterruptedException e1) {
-    	    			// TODO Auto-generated catch block
-    	    			System.out.println("Thread Interuption");
-    	    			e1.printStackTrace();
-    	    		}
- 	        		moveLeftOneStep.perform();
- 	        	} 
+ 	        	
  	       		
- 	       		TradingController tradingController = new TradingController();
- 	       		tradingController.analyzeTrading(product,price,chartList, model);
  	       		
- 	       		for(int s = 0; s < 3 + moveStep; s++){
- 	       			moveRightOneStep.perform();
- 	       		}
  	       		
- 	       		List<WebElement> priceIndicators3 = driver.findElements(
-	                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
- 	       		
- 	       		//if(product.getSymbol().equals("HSI")) {
- 	       			exFirstBar = priceIndicators3.get(11).getText();
- 	       		//}
      	    }
      	         
  	         
     	}catch(TimeoutException|NumberFormatException|StaleElementReferenceException|IndexOutOfBoundsException e) {
+    		
+    		    System.out.println(e);
     			getElementByLocator(By.cssSelector(
     					"table.chart-markup-table tr:nth-child(1) td:nth-child(2) canvas:nth-child(2)"));
     			
@@ -188,16 +220,126 @@ public class ChromeWebDriver {
     			
     			verifyElementListByLocater(By.cssSelector(
  	        			".pane-legend-item-value-container .pane-legend-item-value"));
+    	}	
+	}
+	
+	private void scanChart(Action jiggle, Action moveRightOneStep, Action moveLeftOneStep, int moveStep, String price) {
+		List<Chart> chartList = new ArrayList<Chart>();
+    			
+			for (int i = 0; i < 3; i++) {
+    				jiggle.perform();
+    				List<WebElement> dataList = getElementListByLocater(
+    						By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+    			
+    				System.out.println(product.getSymbol()  + "," + dataList.get(5).getText()  + "," +dataList.get(6).getText()  + "," + dataList.get(11).getText());
+     		
+    				Chart chart = new Chart();
+    				chart.setArrowGreen(Float.parseFloat(dataList.get(5).getText()));
+    				chart.setArrowRed(Float.parseFloat(dataList.get(6).getText()));
+    				chart.setBar(dataList.get(11).getText());
+        	
+    				chartList.add(chart);
+        	
+    				try {
+    					Thread.sleep(150);
+    				} catch (InterruptedException e1) {
+    					// TODO Auto-generated catch block
+    					System.out.println("Thread Interuption");
+    					e1.printStackTrace();
+    					driver.quit();
+    				}
+    				
+    				if(i < 2) {
+    					moveLeftOneStep.perform();
+    				}
+    				
+			} 
     		
-    	}
+    		TradingController tradingController = new TradingController();
+    		
+    		if(verifyChart(moveRightOneStep, moveLeftOneStep, moveStep, chartList)) {
+	            
+        		tradingController.analyzeTrading(product,price,chartList, model);
+    		}
+    		
+    		for(int s = 0; s < 2 + moveStep; s++){
+    			moveRightOneStep.perform();
+    		}
+	}
+	
+	private boolean verifyChart(Action moveRightOneStep, Action moveLeftOneStep, int moveStep, List<Chart> chartList) {
+		boolean flag = false;
 		
-    	try {
-			Thread.sleep(1000 * 15);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			System.out.println("Thread Interuption");
-			e1.printStackTrace();
+		for(int s = 0; s < 2 + moveStep; s++){
+			moveRightOneStep.perform();
 		}
+		
+		List<WebElement> chartDataCurrent = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String currentBar = chartDataCurrent.get(11).getText();
+		
+		moveRightOneStep.perform();
+		
+		List<WebElement> chartDataRightOne = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String rightOneBar = chartDataRightOne.get(11).getText();
+
+		
+		moveRightOneStep.perform();
+		
+		List<WebElement> chartDataRightTwo = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String rightTwoBar = chartDataRightTwo.get(11).getText();
+
+		
+		moveLeftOneStep.perform();
+		moveLeftOneStep.perform();
+		
+		for(int s = 0; s < moveStep; s++){
+			moveLeftOneStep.perform();
+		}
+		
+		List<WebElement> chartDataFirstBar = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String firstBar = chartDataFirstBar.get(11).getText();
+		
+		moveLeftOneStep.perform();
+		
+		List<WebElement> chartDataSecondBar = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String secondBar = chartDataSecondBar.get(11).getText();
+		
+		moveLeftOneStep.perform();
+		
+		List<WebElement> chartDataThirdBar = getElementListByLocater(
+                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
+		
+		String thirdBar = chartDataThirdBar.get(11).getText();
+		
+		String barOne = chartList.get(0).getBar();
+		String barTwo = chartList.get(1).getBar();
+		String barThree = chartList.get(2).getBar();
+		
+		if((currentBar.equals(rightOneBar) && currentBar.equals(rightTwoBar))
+				&& (firstBar.equals(barOne) && secondBar.equals(barTwo) && thirdBar.equals(barThree))) {
+			flag = true;
+		}
+		
+		System.out.println("current bar : " + currentBar);
+		System.out.println("rightOne bar : " + rightOneBar);
+		System.out.println("rightTwo bar : " + rightTwoBar);
+		
+		System.out.println("first  bar : " + firstBar);
+		System.out.println("One bar : " + barOne);
+		System.out.println("Two bar : " + barTwo);
+		System.out.println("Three bar : " + barThree);
+
+		return flag;
 	}
 	
 	private boolean placeScanLine(Action moveLeftOneStep, Action moveRightOneStep) {
@@ -220,21 +362,21 @@ public class ChromeWebDriver {
         	List<WebElement> dataListLeft;
         	
         	try {
-        		dataListCurrent = driver.findElements(
+        		dataListCurrent = getElementListByLocater(
                         By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
         		
         		double barCurrrent = Double.parseDouble(dataListCurrent.get(11).getText());
             	
             	moveRightOneStep.perform();
             	
-            	dataListRight = driver.findElements(
+            	dataListRight = getElementListByLocater(
                         By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
             	
             	double barRight = Double.parseDouble(dataListRight.get(11).getText());
             	
             	moveRightOneStep.perform();
             	
-            	dataListRight = driver.findElements(
+            	dataListRight = getElementListByLocater(
                         By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
             	
             	double barRightTwo = Double.parseDouble(dataListRight.get(11).getText());
@@ -243,7 +385,7 @@ public class ChromeWebDriver {
             	moveLeftOneStep.perform();
             	moveLeftOneStep.perform();
             	
-            	dataListLeft = driver.findElements(
+            	dataListLeft = getElementListByLocater(
                         By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
             
             	double barLeft = Double.parseDouble(dataListLeft.get(11).getText());
@@ -254,27 +396,27 @@ public class ChromeWebDriver {
         			while(barCurrrent != barRight || barCurrrent != barRightTwo) {
         				moveRightOneStep.perform();
         				
-        				dataListCurrent  = driver.findElements(
+        				dataListCurrent  = getElementListByLocater(
         		                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
         				barCurrrent = Double.parseDouble(dataListCurrent.get(11).getText());
         				
         				moveRightOneStep.perform();
         			
-        				dataListRight  = driver.findElements(
+        				dataListRight  = getElementListByLocater(
         		                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
         				
         				barRight = Double.parseDouble(dataListRight.get(11).getText());
         				
         				moveRightOneStep.perform();
             			
-        				dataListRight  = driver.findElements(
+        				dataListRight  = getElementListByLocater(
         		                By.cssSelector(".pane-legend-item-value-container .pane-legend-item-value"));
         				
         				barRightTwo = Double.parseDouble(dataListRight.get(11).getText());
         				
         				moveLeftOneStep.perform();
         			}
-        			exFirstBar = null;
+        			//exFirstBar = null;
         			//moveLeftOneStep.perform();
         		}else {
         			if(barCurrrent == barLeft) {
@@ -287,6 +429,7 @@ public class ChromeWebDriver {
         					// TODO Auto-generated catch block
         					e1.printStackTrace();
         					flag = false;
+        					driver.quit();
         				}
         			}else{
         				if(barCurrrent == barRight) {
@@ -334,6 +477,41 @@ public class ChromeWebDriver {
 		  return we;
 		}
 	
+	
+	public List<WebElement> getElementListByLocater(final By locator){
+		final long startTime = System.currentTimeMillis();
+		
+		Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+			    .withTimeout(30, TimeUnit.SECONDS)
+			    .pollingEvery(5, TimeUnit.SECONDS)
+			    .ignoring( StaleElementReferenceException.class ) ;
+		
+		boolean found = false;
+		List<WebElement> weList = null;
+		
+		 while ( (System.currentTimeMillis() - startTime) < 91000 ) {
+			  // LOGGER.info( "Searching for element. Try number " + (tries++) ); 
+			   try {
+				   
+				   Function<WebDriver, List<WebElement>> function = new Function<WebDriver, List<WebElement>>() {
+						public List<WebElement> apply(WebDriver webDriver) {
+							List<WebElement> dataContainers  = webDriver.findElements(locator);
+	     	                return dataContainers;
+						}
+					};
+					
+					wait.until( ExpectedConditions.presenceOfElementLocated( locator ) );
+					weList = wait.until(function);
+					found = true;
+					break;
+			   } catch ( StaleElementReferenceException e ) {      
+				   //LOGGER.info( "Stale element: \n" + e.getMessage() + "\n");
+			   }
+			  }
+
+		 
+		return weList;
+	}
 	public Boolean verifyElementListByLocater(final By locator){
 		
 		final long startTime = System.currentTimeMillis();
@@ -357,7 +535,7 @@ public class ChromeWebDriver {
 					wait.until(function);
 					found = true;
 					break;
-			   } catch ( StaleElementReferenceException e ) {      
+			   } catch ( StaleElementReferenceException e ) {    
 			    //LOGGER.info( "Stale element: \n" + e.getMessage() + "\n");
 			   }
 		}

@@ -87,7 +87,7 @@ public class ProductController {
 	    return false;
 		
 	}
-	public void runProduct(final Product product, final TradingTableModel model) {
+	public Thread runProduct(final Product product, final TradingTableModel model) {
 		final ChromeWebDriver chromeWebDriver = new ChromeWebDriver(product, model);
 		
 		Runnable myRunnable = new Runnable(){
@@ -100,6 +100,14 @@ public class ProductController {
 
 		   Thread thread = new Thread(myRunnable);
 		   thread.start();
+		   
+		   return thread;
+	}
+	
+	public void stopProduct(Thread thread, int productId) {
+		BarController barController = new BarController();
+		barController.clearBar(productId);
+		thread.interrupt();
 	}
 	
 

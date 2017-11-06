@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.jobpoint.model.State;
-import com.jobpoint.model.Trading;
 
 public class CRUDState {
 	

@@ -10,7 +10,7 @@ import java.sql.Statement;
 public class QueryData {
 	
 	public static final String JDBC_URL = "jdbc:derby:tradingdb;create=true";
-	public static final String SQL_STATEMENT = "select * from trading";
+	public static final String SQL_STATEMENT = "select * from bar";
 	/*public static final String SQL_STATEMENT = "SELECT id, product_id, first_bar_enter, second_bar_enter, third_bar_enter," + 
 	         " first_bar_exit, second_bar_exit, third_bar_exit FROM trading "
 	         + " where product_id = 801 AND situation = false  ORDER BY id DESC FETCH NEXT 5 ROWS ONLY";*/
